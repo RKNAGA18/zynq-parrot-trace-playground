@@ -1,3 +1,4 @@
+13th feb 26
 **Progress**: 
 - Analyzed RISC-V Trace Spec (Branch Trace section).
 - Created `bp_trace_encoder.sv` module shell.
