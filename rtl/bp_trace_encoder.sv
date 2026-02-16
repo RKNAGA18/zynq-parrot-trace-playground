@@ -1,35 +1,43 @@
-// USE OUR MOCK FILE INSTEAD
 `include "bp_mock_defines.svh"
 
 module bp_trace_encoder
- #(parameter trace_width_p = 64)
-  (input                                clk_i
-   , input                              reset_i
+ (
+  input  logic clk_i,
+  input  logic reset_i,
 
-   // Input Packet (Using our Mock definition)
-   , input [bp_be_commit_pkt_width_lp-1:0] commit_pkt_i
-   , input                              commit_v_i
-   , input                              commit_ready_i
+  input  bp_commit_pkt_s commit_pkt_i, 
+  input  logic           commit_valid_i, 
 
-   // Trace Output
-   , output logic [trace_width_p-1:0]   trace_data_o
-   , output logic                       trace_v_o
-   , input                              trace_ready_i
-   );
+  output logic [31:0]    trace_data_o,
+  output logic           trace_valid_o
+ );
 
-   // Cast the input bits into our local struct
-   bp_be_commit_pkt_s commit_pkt;
-   assign commit_pkt = commit_pkt_i;
+  logic [31:0] last_pc_r;
+  logic [31:0] current_pc;
+  logic [31:0] delta;
+  logic        is_discontinuity;
 
-   // Extract Signals
-   logic [39:0] current_pc;
-   logic [31:0] current_instr;
+  assign current_pc = commit_pkt_i.pc;
+  assign delta = current_pc - last_pc_r;
+  assign is_discontinuity = (delta != 32'd4) && (delta != 32'd0); 
 
-   assign current_pc    = commit_pkt.pc;
-   assign current_instr = commit_pkt.instr;
-
-   // (Logic will go here later)
-   assign trace_data_o = '0;
-   assign trace_v_o    = 1'b0;
-
+  always_ff @(posedge clk_i or posedge reset_i) begin
+    if (reset_i) begin
+      last_pc_r     <= 32'd0;
+      trace_valid_o <= 1'b0;
+      trace_data_o  <= 32'd0;
+    end else begin
+      if (commit_valid_i) begin
+        last_pc_r <= current_pc;
+        if (is_discontinuity) begin
+          trace_valid_o <= 1'b1;
+          trace_data_o  <= current_pc; 
+        end else begin
+          trace_valid_o <= 1'b0;
+        end
+      end else begin
+        trace_valid_o <= 1'b0;
+      end
+    end
+  end
 endmodule
