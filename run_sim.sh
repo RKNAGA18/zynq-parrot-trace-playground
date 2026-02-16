@@ -1,14 +1,19 @@
 #!/bin/bash
 
-# Simple Compile - No weird folders needed anymore
+# Compile all files: Testbench + Encoder + FIFO + Dictionaries
 iverilog -g2012 \
   -I rtl \
-  -o sim_encoder \
-  tb/tb_encoder.sv rtl/bp_trace_encoder.sv
+  -o encoder_test \
+  tb/tb_encoder.sv \
+  rtl/bp_trace_encoder.sv \
+  rtl/simple_fifo.sv
 
-# Run
-if [ -f sim_encoder ]; then
-    ./sim_encoder
+# Check if compilation succeeded
+if [ $? -eq 0 ]; then
+    echo "--------------------------------------------------------"
+    echo "   COMPILATION SUCCESS!  (Running Simulation...)"
+    echo "--------------------------------------------------------"
+    ./encoder_test
 else
-    echo "Failed."
+    echo "COMPILATION FAILED"
 fi
