@@ -1,4 +1,5 @@
 `include "bp_mock_defines.svh"
+`include "rtl/bp_nexus_defines.svh"
 
 module bp_trace_encoder
  (
@@ -9,31 +10,39 @@ module bp_trace_encoder
   input  bp_commit_pkt_s commit_pkt_i, 
   input  logic           commit_valid_i, 
 
-  // Output Interface (Now with Backpressure!)
-  output logic [31:0]    trace_data_o,
-  output logic           trace_valid_o,
-  input  logic           trace_ready_i // NEW: The outside world tells us if it's ready
+  // Output Interface (Now sending Nexus Packets!)
+  output nexus_trace_pkt_s trace_pkt_o,  // 40-bit Struct
+  output logic             trace_valid_o,
+  input  logic             trace_ready_i 
  );
 
-  // Internal Logic Signals
+  // Internal Signals
   logic [31:0] last_pc_r;
   logic [31:0] current_pc;
   logic [31:0] delta;
   logic        is_discontinuity;
   
-  // FIFO Signals
-  logic        fifo_ready_lo; // Is the FIFO ready to take our data?
-  logic        fifo_v_li;     // Do we want to write to the FIFO?
-  logic        fifo_yumi_li;  // Did the outside world consume the data?
+  // Packet Construction
+  nexus_trace_pkt_s next_packet;
 
-  // --- 1. The Compression Logic (Same as Day 3) ---
+  // FIFO Signals
+  logic        fifo_ready_lo; 
+  logic        fifo_v_li;     
+
+  // --- 1. Delta Compression Logic ---
   assign current_pc = commit_pkt_i.pc;
   assign delta = current_pc - last_pc_r;
   assign is_discontinuity = (delta != 32'd4) && (delta != 32'd0); 
 
-  // We want to write to FIFO IF: 
-  // 1. The CPU sent a valid commit 
-  // 2. AND it is a discontinuity (jump)
+  // --- 2. Packet Construction ---
+  // We build the packet immediately, even if we don't send it yet.
+  always_comb begin
+    next_packet.mcode  = NEXUS_MCODE_DIRECT_BRANCH; // It's a Branch
+    next_packet.src_id = 2'b00;                     // Core 0
+    next_packet.addr   = current_pc;                // The Target
+  end
+
+  // We write to FIFO if Valid Jump detected
   assign fifo_v_li = commit_valid_i && is_discontinuity;
 
   always_ff @(posedge clk_i or posedge reset_i) begin
@@ -46,21 +55,20 @@ module bp_trace_encoder
     end
   end
 
-  // --- 2. The FIFO Instance ---
-  simple_fifo #(.WIDTH(32), .DEPTH(4)) trace_fifo
+  // --- 3. The FIFO Instance ---
+  // Note: WIDTH is now 40 bits (Size of nexus_trace_pkt_s)
+  simple_fifo #(.WIDTH($bits(nexus_trace_pkt_s)), .DEPTH(4)) trace_fifo
    (
     .clk_i(clk_i),
     .reset_i(reset_i),
 
-    // Write Side (Encoder -> FIFO)
-    .data_i(current_pc),   // The data to save
-    .v_i(fifo_v_li),       // "I want to save this"
-    .ready_o(fifo_ready_lo), // "Okay, I have space"
+    .data_i(next_packet),     // WRITE the Packet
+    .v_i(fifo_v_li),       
+    .ready_o(fifo_ready_lo), 
 
-    // Read Side (FIFO -> Outside World)
-    .data_o(trace_data_o),
+    .data_o(trace_pkt_o),     // READ the Packet
     .v_o(trace_valid_o),
-    .yumi_i(trace_ready_i && trace_valid_o) // "Yumi" means Valid AND Ready (Handshake)
+    .yumi_i(trace_ready_i && trace_valid_o) 
    );
 
 endmodule
