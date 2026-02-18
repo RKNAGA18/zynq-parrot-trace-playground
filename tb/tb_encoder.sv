@@ -1,26 +1,19 @@
 `include "bp_mock_defines.svh"
-`include "rtl/bp_nexus_defines.svh" // Include the new dictionary
+`include "rtl/bp_nexus_defines.svh"
 
 module tb_encoder;
   logic clk, reset;
   bp_commit_pkt_s commit_pkt;
   logic commit_valid;
-  
-  // Output Signals (Now using the Struct)
   nexus_trace_pkt_s trace_pkt;
-  logic             trace_valid;
-  logic             trace_ready;
+  logic trace_valid, trace_ready;
 
   `include "rtl/simple_fifo.sv"
 
   bp_trace_encoder dut (
-    .clk_i(clk),
-    .reset_i(reset),
-    .commit_pkt_i(commit_pkt),
-    .commit_valid_i(commit_valid),
-    .trace_pkt_o(trace_pkt),   // Connect Packet
-    .trace_valid_o(trace_valid),
-    .trace_ready_i(trace_ready)
+    .clk_i(clk), .reset_i(reset),
+    .commit_pkt_i(commit_pkt), .commit_valid_i(commit_valid),
+    .trace_pkt_o(trace_pkt), .trace_valid_o(trace_valid), .trace_ready_i(trace_ready)
   );
 
   always #5 clk = ~clk;
@@ -28,44 +21,39 @@ module tb_encoder;
   initial begin
     $dumpfile("encoder_test.vcd");
     $dumpvars(0, tb_encoder);
-
-    clk = 0; reset = 1; commit_valid = 0; 
-    trace_ready = 1; 
-    
-    #10 reset = 0;
-    #10 reset = 1; 
-    #10 reset = 0;
+    clk = 0; reset = 1; commit_valid = 0; trace_ready = 1; 
+    #10 reset = 0; #10 reset = 1; #10 reset = 0;
 
     $display("--- Simulation Start ---");
 
-    // Case 1: Normal Jump (0x1000 -> 0x2000)
-    #10;
-    commit_valid = 1;
-    commit_pkt.pc = 32'h1000; 
-    #10;
-    commit_pkt.pc = 32'h2000; // Jump!
-    #10;
+    // Case 1: Start at 0x1000
+    #10 commit_valid = 1; commit_pkt.pc = 32'h1000; 
     
-    // Case 2: Backpressure Test
-    trace_ready = 0; 
-    commit_pkt.pc = 32'h3000; 
-    #10;
-    
-    commit_valid = 0; 
-    trace_ready = 1; 
-    #50;
+    // Case 2: SMALL Jump (Offset = 16 bytes)
+    // 0x1000 -> 0x1010. Delta is 0x10 (Small!).
+    // Should trigger COMPRESSED format.
+    #10 commit_pkt.pc = 32'h1010; 
 
-    $display("--- Simulation End ---");
+    // Case 3: HUGE Jump 
+    // 0x1010 -> 0x8000_0000. Delta is Massive.
+    // Should trigger FULL format.
+    #10 commit_pkt.pc = 32'h80000000;
+
+    #10 commit_valid = 0;
+    #50;
     $finish;
   end
 
-  // Monitor: Unpack the Nexus Packet
+  // Smart Monitor
   always @(negedge clk) begin
     if (trace_valid) begin
-      $display("Time %0t: PACKET RECEIVED!", $time);
-      $display("  -> Type: %h (Direct Branch)", trace_pkt.mcode);
-      $display("  -> Addr: %h", trace_pkt.addr);
+      if (trace_pkt.mcode == NEXUS_MCODE_COMPRESSED) begin
+         $display("Time %0t: [COMPRESSED] Offset Only: %d bytes", $time, trace_pkt.addr);
+      end else if (trace_pkt.mcode == NEXUS_MCODE_DIRECT_BRANCH) begin
+         $display("Time %0t: [FULL JUMP]  Target Addr: %h", $time, trace_pkt.addr);
+      end else begin
+         $display("Time %0t: [UNKNOWN]    Code: %h", $time, trace_pkt.mcode);
+      end
     end
   end
-
 endmodule

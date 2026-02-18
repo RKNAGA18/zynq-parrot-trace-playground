@@ -1,105 +1,211 @@
 $date
-	Sat Feb 14 10:16:34 2026
+	Wed Feb 18 06:32:33 2026
 $end
 $version
 	Icarus Verilog
 $end
 $timescale
-	1ps
+	1s
 $end
 $scope module tb_encoder $end
-$var wire 64 ! trace_data [63:0] $end
-$var wire 1 " trace_v $end
+$var wire 1 ! trace_valid $end
+$var wire 40 " trace_pkt [39:0] $end
 $var reg 1 # clk $end
-$var reg 102 $ commit_pkt_cast [101:0] $end
-$var reg 32 % mock_instr [31:0] $end
-$var reg 40 & mock_pc [39:0] $end
-$var reg 1 ' mock_ready $end
-$var reg 1 ( mock_v $end
-$var reg 1 ) reset $end
-$var reg 1 * trace_ready $end
-$scope module DUT $end
+$var reg 64 $ commit_pkt [63:0] $end
+$var reg 1 % commit_valid $end
+$var reg 1 & reset $end
+$var reg 1 ' trace_ready $end
+$scope module dut $end
 $var wire 1 # clk_i $end
-$var wire 102 + commit_pkt [101:0] $end
-$var wire 102 , commit_pkt_i [101:0] $end
-$var wire 1 ' commit_ready_i $end
-$var wire 1 ( commit_v_i $end
-$var wire 1 ) reset_i $end
-$var wire 64 - trace_data_o [63:0] $end
-$var wire 1 * trace_ready_i $end
-$var wire 1 " trace_v_o $end
-$var wire 40 . current_pc [39:0] $end
-$var wire 32 / current_instr [31:0] $end
-$var parameter 32 0 trace_width_p $end
+$var wire 64 ( commit_pkt_i [63:0] $end
+$var wire 1 % commit_valid_i $end
+$var wire 1 ) fifo_v_li $end
+$var wire 1 * is_discontinuity $end
+$var wire 1 & reset_i $end
+$var wire 1 ' trace_ready_i $end
+$var wire 1 ! trace_valid_o $end
+$var wire 40 + trace_pkt_o [39:0] $end
+$var wire 1 , is_compressed $end
+$var wire 1 - fifo_ready_lo $end
+$var wire 32 . delta [31:0] $end
+$var wire 32 / current_pc [31:0] $end
+$var reg 32 0 last_pc_r [31:0] $end
+$var reg 40 1 next_packet [39:0] $end
+$scope module trace_fifo $end
+$var wire 1 # clk_i $end
+$var wire 40 2 data_i [39:0] $end
+$var wire 40 3 data_o [39:0] $end
+$var wire 1 & reset_i $end
+$var wire 1 ) v_i $end
+$var wire 1 4 yumi_i $end
+$var wire 1 ! v_o $end
+$var wire 1 - ready_o $end
+$var wire 1 5 full $end
+$var wire 1 6 empty $end
+$var parameter 32 7 DEPTH $end
+$var parameter 32 8 WIDTH $end
+$var reg 3 9 count_r [2:0] $end
+$var reg 2 : rptr_r [1:0] $end
+$var reg 2 ; wptr_r [1:0] $end
+$upscope $end
 $upscope $end
 $upscope $end
 $enddefinitions $end
 $comment Show the parameter values. $end
 $dumpall
-b1000000 0
+b101000 8
+b100 7
 $end
 #0
 $dumpvars
+b0 ;
+b0 :
+b0 9
+16
+05
+04
+bx 3
+b1100xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 2
+b1100xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 1
+b0 0
 bx /
 bx .
-b0 -
-bx ,
+1-
+x,
 bx +
 x*
-1)
-0(
-x'
-bx &
-bx %
+0)
+bx (
+1'
+1&
+0%
 bx $
 0#
-0"
-b0 !
+bx "
+0!
 $end
-#5000
+#5
 1#
-#10000
+#10
 0#
-#15000
+0&
+#15
 1#
-#20000
+#20
 0#
-0)
-#25000
+1&
+#25
+1#
+#30
+0#
+0&
+#35
+1#
+#40
+1*
+0,
+b110000000000000000000001000000000000 1
+b110000000000000000000001000000000000 2
 b1000000000000 .
-b10011 /
-b100000000000000000000000000000000000000010011000000000000000000000000000000 +
-b100000000000000000000000000000000000000010011000000000000000000000000000000 $
-b100000000000000000000000000000000000000010011000000000000000000000000000000 ,
-b10011 %
-b1000000000000 &
-1#
-#30000
+b1000000000000 /
+1)
 0#
-#35000
-b1000000000100 .
-b100000000010000000000000000000000000000010011000000000000000000000000000000 +
-b100000000010000000000000000000000000000010011000000000000000000000000000000 $
-b100000000010000000000000000000000000000010011000000000000000000000000000000 ,
-b1000000000100 &
+b1000000000000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx $
+b1000000000000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx (
+1%
+#45
+0)
+b10010000000000000000000000000000000000 1
+b10010000000000000000000000000000000000 2
+14
+0*
+1,
+1!
+06
+b1 9
+b1 ;
+b110000000000000000000001000000000000 "
+b110000000000000000000001000000000000 +
+b110000000000000000000001000000000000 3
+b0 .
+b1000000000000 0
 1#
-#40000
+#50
+1)
+1*
+b10010000000000000000000000000000010000 1
+b10010000000000000000000000000000010000 2
+b10000 .
+b1000000010000 /
 0#
-#45000
+b1000000010000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx $
+b1000000010000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx (
+#55
+0)
+0*
+b10010000000000000000000000000000000000 1
+b10010000000000000000000000000000000000 2
+b0 .
+b1000000010000 0
+b10010000000000000000000000000000010000 "
+b10010000000000000000000000000000010000 +
+b10010000000000000000000000000000010000 3
+b1 :
+b10 ;
 1#
-#50000
+#60
+1)
+1*
+0,
+b110010000000000000000000000000000000 1
+b110010000000000000000000000000000000 2
+b1111111111111111110111111110000 .
+b10000000000000000000000000000000 /
 0#
-#55000
+b10000000000000000000000000000000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx $
+b10000000000000000000000000000000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx (
+#65
+0)
+b10010000000000000000000000000000000000 1
+b10010000000000000000000000000000000000 2
+0*
+1,
+b110010000000000000000000000000000000 "
+b110010000000000000000000000000000000 +
+b110010000000000000000000000000000000 3
+b10 :
+b11 ;
+b0 .
+b10000000000000000000000000000000 0
 1#
-#60000
+#70
 0#
-#65000
+0%
+#75
+04
+0!
+16
+b0 9
+bx "
+bx +
+bx 3
+b11 :
 1#
-#70000
+#80
 0#
-#75000
+#85
 1#
-#80000
+#90
 0#
-#85000
+#95
 1#
+#100
+0#
+#105
+1#
+#110
+0#
+#115
+1#
+#120
+0#
