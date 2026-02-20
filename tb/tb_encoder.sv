@@ -16,6 +16,7 @@ module tb_encoder;
     .trace_pkt_o(trace_pkt), .trace_valid_o(trace_valid), .trace_ready_i(trace_ready)
   );
 
+  // Clock Generation (10ns period)
   always #5 clk = ~clk;
 
   initial begin
@@ -26,33 +27,30 @@ module tb_encoder;
 
     $display("--- Simulation Start ---");
 
-    // Case 1: Start at 0x1000
+    // Case 1: Start execution
     #10 commit_valid = 1; commit_pkt.pc = 32'h1000; 
     
-    // Case 2: SMALL Jump (Offset = 16 bytes)
-    // 0x1000 -> 0x1010. Delta is 0x10 (Small!).
-    // Should trigger COMPRESSED format.
-    #10 commit_pkt.pc = 32'h1010; 
+    // Case 2: Wait 3 clock cycles (#30), then jump
+    // Clock period is 10. Wait 30 = 3 cycles.
+    #30 commit_pkt.pc = 32'h1010; 
 
-    // Case 3: HUGE Jump 
-    // 0x1010 -> 0x8000_0000. Delta is Massive.
-    // Should trigger FULL format.
-    #10 commit_pkt.pc = 32'h80000000;
+    // Case 3: Wait 6 clock cycles (#60), then huge jump
+    #60 commit_pkt.pc = 32'h80000000;
 
-    #10 commit_valid = 0;
+    #20 commit_valid = 0;
     #50;
     $finish;
   end
 
-  // Smart Monitor
+  // Monitor: Now prints the timestamp!
   always @(negedge clk) begin
     if (trace_valid) begin
       if (trace_pkt.mcode == NEXUS_MCODE_COMPRESSED) begin
-         $display("Time %0t: [COMPRESSED] Offset Only: %d bytes", $time, trace_pkt.addr);
+         $display("Time %0t: [COMPRESSED] Delay: %0d cycles | Offset: %0d bytes", 
+                  $time, trace_pkt.timestamp, trace_pkt.addr);
       end else if (trace_pkt.mcode == NEXUS_MCODE_DIRECT_BRANCH) begin
-         $display("Time %0t: [FULL JUMP]  Target Addr: %h", $time, trace_pkt.addr);
-      end else begin
-         $display("Time %0t: [UNKNOWN]    Code: %h", $time, trace_pkt.mcode);
+         $display("Time %0t: [FULL JUMP]  Delay: %0d cycles | Target: %h", 
+                  $time, trace_pkt.timestamp, trace_pkt.addr);
       end
     end
   end

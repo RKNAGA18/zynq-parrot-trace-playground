@@ -16,7 +16,9 @@ module bp_trace_encoder
   logic [31:0] current_pc;
   logic [31:0] delta;
   logic        is_discontinuity;
-  logic        is_compressed; // NEW: Flag for small jumps
+  logic        is_compressed;
+  
+  logic [7:0]  timer_r; // NEW: The internal cycle counter
 
   nexus_trace_pkt_s next_packet;
   logic        fifo_ready_lo; 
@@ -25,23 +27,17 @@ module bp_trace_encoder
   assign current_pc = commit_pkt_i.pc;
   assign delta = current_pc - last_pc_r;
   assign is_discontinuity = (delta != 32'd4) && (delta != 32'd0); 
-
-  // NEW: Check if the jump is small (less than 256 bytes)
-  // We check if bits [31:8] are all zero.
   assign is_compressed = (delta[31:8] == 24'd0);
 
-  // Packet Construction Logic
+  // Packet Construction (Now includes Timestamp!)
   always_comb begin
-    next_packet.src_id = 2'b00;
+    next_packet.src_id    = 2'b00;
+    next_packet.timestamp = timer_r; // Attach the current timer value
 
     if (is_compressed) begin
-        // TYPE: Compressed
-        // PAYLOAD: Just the Delta (Offset)
         next_packet.mcode = NEXUS_MCODE_COMPRESSED;
         next_packet.addr  = delta; 
     end else begin
-        // TYPE: Full Branch
-        // PAYLOAD: The Full Target Address
         next_packet.mcode = NEXUS_MCODE_DIRECT_BRANCH;
         next_packet.addr  = current_pc;
     end
@@ -49,12 +45,25 @@ module bp_trace_encoder
 
   assign fifo_v_li = commit_valid_i && is_discontinuity;
 
+  // Clocked Logic: PC tracking AND Timer management
   always_ff @(posedge clk_i or posedge reset_i) begin
     if (reset_i) begin
       last_pc_r <= 32'd0;
+      timer_r   <= 8'd0;
     end else begin
+      // PC History Update
       if (commit_valid_i) begin
         last_pc_r <= current_pc;
+      end
+      
+      // Timer Logic: Reset if we sent a packet, otherwise increment
+      if (fifo_v_li && fifo_ready_lo) begin
+        timer_r <= 8'd0; // Reset after successful transmission
+      end else begin
+        // Prevent overflow (cap at 255)
+        if (timer_r != 8'hFF) begin 
+            timer_r <= timer_r + 1'b1;
+        end
       end
     end
   end
