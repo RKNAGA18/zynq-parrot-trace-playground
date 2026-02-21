@@ -12,13 +12,13 @@ module bp_trace_encoder
   input  logic             trace_ready_i 
  );
 
-  logic [31:0] last_pc_r;
-  logic [31:0] current_pc;
-  logic [31:0] delta;
+  logic [63:0] last_pc_r;   // UPGRADED to 64-bit
+  logic [63:0] current_pc;  // UPGRADED to 64-bit
+  logic [63:0] delta;       // UPGRADED to 64-bit
+  
   logic        is_discontinuity;
   logic        is_compressed;
-  
-  logic [7:0]  timer_r; // NEW: The internal cycle counter
+  logic [7:0]  timer_r; 
 
   nexus_trace_pkt_s next_packet;
   logic        fifo_ready_lo; 
@@ -26,13 +26,16 @@ module bp_trace_encoder
 
   assign current_pc = commit_pkt_i.pc;
   assign delta = current_pc - last_pc_r;
-  assign is_discontinuity = (delta != 32'd4) && (delta != 32'd0); 
-  assign is_compressed = (delta[31:8] == 24'd0);
+  
+  // Checking for normal +4 byte stepping on a 64-bit bus
+  assign is_discontinuity = (delta != 64'd4) && (delta != 64'd0); 
+  
+  // VLE Logic: Check if the top 56 bits are zero
+  assign is_compressed = (delta[63:8] == 56'd0);
 
-  // Packet Construction (Now includes Timestamp!)
   always_comb begin
     next_packet.src_id    = 2'b00;
-    next_packet.timestamp = timer_r; // Attach the current timer value
+    next_packet.timestamp = timer_r; 
 
     if (is_compressed) begin
         next_packet.mcode = NEXUS_MCODE_COMPRESSED;
@@ -45,25 +48,18 @@ module bp_trace_encoder
 
   assign fifo_v_li = commit_valid_i && is_discontinuity;
 
-  // Clocked Logic: PC tracking AND Timer management
   always_ff @(posedge clk_i or posedge reset_i) begin
     if (reset_i) begin
-      last_pc_r <= 32'd0;
+      last_pc_r <= 64'd0;
       timer_r   <= 8'd0;
     end else begin
-      // PC History Update
       if (commit_valid_i) begin
         last_pc_r <= current_pc;
       end
-      
-      // Timer Logic: Reset if we sent a packet, otherwise increment
       if (fifo_v_li && fifo_ready_lo) begin
-        timer_r <= 8'd0; // Reset after successful transmission
-      end else begin
-        // Prevent overflow (cap at 255)
-        if (timer_r != 8'hFF) begin 
-            timer_r <= timer_r + 1'b1;
-        end
+        timer_r <= 8'd0; 
+      end else if (timer_r != 8'hFF) begin 
+        timer_r <= timer_r + 1'b1;
       end
     end
   end

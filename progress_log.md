@@ -58,3 +58,12 @@
     * **Logic Update:** Configured the encoder to snapshot the current counter value and attach it to the trace packet whenever a jump is detected.
     * Implemented **Relative Timestamps (Delta Time)**: The counter automatically resets to zero after every successfully transmitted packet to save bit-width and optimize bandwidth.
 * **Verification:** Modified the testbench (`tb/tb_encoder.sv`) to simulate variable execution delays (e.g., waiting 3 and 6 clock cycles between jumps). The simulation monitor successfully verified that the packets contained the exact delta cycle counts (`Delay: 2 cycles` and `Delay: 5 cycles`), proving the hardware math is accurate.
+
+### 20th Feb 26 Progress: RV64 Architecture Alignment (Day 8)
+* **Objective:** Align the standalone trace prototype with BlackParrot's 64-bit (RV64) architecture based on maintainer feedback regarding the `commit_pkt` structures.
+* **Implementation:**
+    * Updated `rtl/bp_mock_defines.svh` to mirror the official struct, introducing `bp_vaddr_t` (64-bit) for the Program Counter and `bp_instr_t` (32-bit) for the instruction payload.
+    * Upgraded the `nexus_trace_pkt_s` structure to 80 bits to accommodate a full 64-bit address payload.
+    * Modified the `bp_trace_encoder.sv` data path and delta calculation logic to operate on 64-bit wires natively.
+    * **VLE Adjustment:** The `is_compressed` logic was updated to verify that the upper 56 bits of the 64-bit delta are zero, ensuring accurate compression on the wider bus.
+* **Verification:** The testbench successfully simulated a 64-bit kernel-space jump (`0xFFFFFFFF80000000`), proving the architecture's readiness for integration with `bp_common_be_if.svh`.

@@ -7,12 +7,12 @@ typedef enum logic [5:0] {
     NEXUS_MCODE_ERROR           = 6'h00 
 } nexus_mcode_e;
 
-// Expanded Packet Structure (48 bits total)
+// 80-bit Nexus Packet (RV64 Ready)
 typedef struct packed {
     nexus_mcode_e        mcode;     // 6 bits
     logic [1:0]          src_id;    // 2 bits
-    logic [7:0]          timestamp; // 8 bits: Cycles since last jump
-    logic [31:0]         addr;      // 32 bits
+    logic [7:0]          timestamp; // 8 bits
+    logic [63:0]         addr;      // 64-bit Address payload
 } nexus_trace_pkt_s;
 
 `endif
