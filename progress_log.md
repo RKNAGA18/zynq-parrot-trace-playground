@@ -1,9 +1,11 @@
 # GSoC 2026 Progress Log: ZynqParrot Trace Encoder
 
 ### 13th Feb 26 Progress: Initial Setup (Day 1)
-* Analyzed RISC-V Trace Spec (Branch Trace section).
-* Created `bp_trace_encoder.sv` module shell.
-* Mapped `bp_be_commit_pkt` signals to the trace encoder inputs.
+* **Objective:** Begin hardware trace encoder development.
+* **Implementation:**
+  * Analyzed RISC-V Trace Spec (Branch Trace section).
+  * Created `bp_trace_encoder.sv` module shell.
+  * Mapped `bp_be_commit_pkt` signals to the trace encoder inputs.
 * **Technical Details:**
   * Used `bp_be_commit_pkt_s` struct to unpack PC and Instruction without manual bit slicing.
   * Defined the output interface to match the Trace Spec packet format.
