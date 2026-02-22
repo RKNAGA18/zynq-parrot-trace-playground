@@ -67,3 +67,11 @@
     * Modified the `bp_trace_encoder.sv` data path and delta calculation logic to operate on 64-bit wires natively.
     * **VLE Adjustment:** The `is_compressed` logic was updated to verify that the upper 56 bits of the 64-bit delta are zero, ensuring accurate compression on the wider bus.
 * **Verification:** The testbench successfully simulated a 64-bit kernel-space jump (`0xFFFFFFFF80000000`), proving the architecture's readiness for integration with `bp_common_be_if.svh`.
+
+### 21st Feb 26 Progress: Cycle-Accurate Verilator Migration (Day 9)
+* **Objective:** Migrate the simulation environment from an event-driven simulator (Icarus Verilog) to a high-speed, cycle-accurate compiled C++ model using Verilator, aligning with FOSSi maintainer recommendations.
+* **Implementation:**
+    * Created a C++ testbench wrapper (`tb/sim_main.cpp`) to instantiate the Verilated model, drive the simulation clock natively, and manage VCD waveform generation.
+    * Refactored `tb/tb_encoder.sv` into a strict, cycle-accurate state machine, removing unsupported `#delay` statements to comply with Verilator's synthesis rules.
+    * Rewrote `run_sim.sh` to translate the SystemVerilog RTL into optimized C++ and compile it into a standalone, high-performance binary executable.
+* **Verification:** The compiled Verilator binary successfully executed the RV64 test cases—including VLE compression and kernel-space jumps—proving the standalone trace architecture is fully compatible with industry-standard verification toolchains.
