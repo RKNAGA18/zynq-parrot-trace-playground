@@ -1,3 +1,6 @@
 my_zynq_sim
 *.o
 *.log
+obj_dir/
+*.vcd
+encoder_test
