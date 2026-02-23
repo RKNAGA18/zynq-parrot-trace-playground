@@ -1,21 +1,23 @@
-### I'm R. Naga Arjun!
-**Electronics Engineering Student @ VIT Chennai | VLSI & RISC-V Enthusiast**
+# ZynqParrot Trace Encoder (Standalone Prototype)
 
-Currently preparing for **GSoC 2026** with the FOSSi Foundation.
+A cycle-accurate, standalone RISC-V hardware trace encoder prototype designed for integration into the **BlackParrot** (`bp_be_top`) backend pipeline . 
 
-🔭 **I’m currently working on:**
-* **[ZynqParrot Trace Encoder](https://github.com/RKNAGA18/zynq-parrot-trace-playground):** Building a cycle-accurate, RV64-compliant hardware trace encoder for RISC-V FPGA simulation.
-  * *Key Features:* IEEE-ISTO 5001 Nexus Trace packetization, Variable Length Encoding (VLE) for trace bandwidth compression, FIFO backpressure handling, and Delta Timestamps.
-* **SystemVerilog & C++:** Developing the RTL core and using **Verilator** for high-speed, cycle-based simulation environments.
+This repository serves as a proof-of-concept for compressing execution traces natively in hardware to overcome FPGA I/O bandwidth limitations when debugging soft-cores.
 
-🌱 **I’m currently learning & integrating:**
-* RISC-V Processor Trace Specification (E-Trace) & Nexus 5001 Standard
-* BlackParrot Architecture & Core Interfaces (`bp_common`, `bp_be_commit_pkt_s`)
-* High-speed hardware simulation workflows (Migrating from Event-Driven to Cycle-Accurate testing)
+## Architecture & Features
 
-🛠️ **Tech Stack & Tools:**
-* **Languages:** SystemVerilog, C/C++, Python ,perl ,tcl
-* **Verification & Simulation:** Verilator, Icarus Verilog, GTKWave
-* **Domains:** Digital Logic Design, Computer Architecture, RTL to GDSII Flow
+This prototype mirrors the exact interfaces found in the FOSSi `bp_common` repository.
+* **RV64 Alignment:** Native support for 64-bit addresses, directly mimicking the `bp_be_commit_pkt_s` struct.
+* **Delta Filtering:** Combinational logic to suppress sequential PC updates (+4 bytes) and only trigger trace packets on pipeline discontinuities (branches/jumps).
+* **Variable Length Encoding (VLE):** Hardware dynamic compression that detects small jumps and strips up to 56 bits of zeros, replacing 64-bit targets with 8-bit offsets.
+* **Elastic Backpressure:** Parameterized circular FIFO ring-buffer utilizing `valid/ready/yumi` handshakes to prevent trace data loss during instruction traffic jams.
+* **Nexus 5001 Packetization:** Outputs structured 80-bit packets (`MCODE`, `Source ID`, `Timestamp`, `Payload`).
 
-📫 **Reach me at:** rknarjun396@gmail.com
+## Simulation & Toolchain
+
+The simulation environment has been migrated from event-driven testing to a cycle-accurate compiled C++ model using **Verilator**, matching industry-standard VLSI verification workflows.
+
+### **1. Hardware Simulation (Verilator)**
+Translates the SystemVerilog RTL into C++ and executes the cycle-accurate test vectors.
+```bash
+make all
