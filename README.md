@@ -12,6 +12,18 @@ This prototype mirrors the exact interfaces found in the FOSSi `bp_common` repos
 * **Variable Length Encoding (VLE):** Hardware dynamic compression that detects small jumps and strips up to 56 bits of zeros, replacing 64-bit targets with 8-bit offsets.
 * **Elastic Backpressure:** Parameterized circular FIFO ring-buffer utilizing `valid/ready/yumi` handshakes to prevent trace data loss during instruction traffic jams.
 * **Nexus 5001 Packetization:** Outputs structured 80-bit packets (`MCODE`, `Source ID`, `Timestamp`, `Payload`).
+### Integration Blueprint (FOSSi Requirement)
+The following block diagrams illustrate the planned integration of the trace encoder into the ZynqParrot environment, mapping the 80-bit Nexus packets to the existing AXI4-Stream infrastructure (per PR #96).
+
+**Before: Current Architecture (Trace Trapped)**
+![Before Architecture](images/zynqparrot_before.png)
+
+**After: Proposed Integration (Trace Exported)**
+![After Architecture](images/zynqparrot_after.png)
+
+### Core Components
+This prototype mirrors the exact interfaces found in the FOSSi `bp_common` repository to ensure seamless upstream integration...
+*(Keep the rest of your bullet points here)*
 
 ## Quick Start & Toolchain
 
