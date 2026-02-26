@@ -1,4 +1,4 @@
-# ZynqParrot Trace Encoder (Standalone Prototype)
+# ZynqParrot Trace Encoder
 
 A cycle-accurate, standalone RISC-V hardware trace encoder prototype designed for integration into the **BlackParrot** (`bp_be_top`) backend pipeline. 
 
