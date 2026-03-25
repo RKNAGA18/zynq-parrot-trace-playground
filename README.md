@@ -35,12 +35,12 @@ The simulation environment uses a cycle-accurate compiled C++ model via **Verila
 ### 1. Commit Stage Isolation
 *GTKWave analysis demonstrating the successful isolation of the commit signals and opcode within the BlackParrot backend.*
 
-![GTKWave Output](assets/gtkwave_btype_commit.png)
+![GTKWave Output](images/gtkwave_btype_commit.png)
 
 ### 2. Hardware Trace Filtering
 *Verilator Co-Simulation output confirming the hardware successfully ignores linear ALU instructions and captures non-linear branches.*
 
-![Verilator Output](assets/test_output.png)
+![Verilator Output](images/test_output.png)
 
 ## Quick Start (Local Simulation)
 
