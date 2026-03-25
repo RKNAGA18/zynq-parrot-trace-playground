@@ -1,6 +1,6 @@
 # ZynqParrot RISC-V Trace Encoder (PoC)
 
-[![RISC-V](https://img.shields.io/badge/RISC--V-Trace-blue.svg)](https://riscv.org/)
+[![RISC-V](https://img.shields.io/badge/RISC--V-Trace-blue.svg)]()
 [![SystemVerilog](https://img.shields.io/badge/Language-SystemVerilog-brightgreen.svg)]()
 [![Verilator](https://img.shields.io/badge/Simulator-Verilator-orange.svg)]()
 [![Status](https://img.shields.io/badge/Status-GSoC_2026_PoC-success.svg)]()
@@ -23,6 +23,8 @@ This prototype mirrors the exact interfaces found in the FOSSi `bp_common` repos
 * **Variable Length Encoding (VLE):** Hardware dynamic compression that detects small jumps and strips up to 56 bits of zeros, replacing 64-bit targets with 8-bit offsets.
 * **Elastic Backpressure:** Parameterized circular FIFO ring-buffer utilizing `valid/ready/yumi` handshakes to prevent trace data loss during instruction traffic jams.
 * **Nexus 5001 Packetization:** Outputs structured 80-bit packets (`MCODE`, `Source ID`, `Timestamp`, `Payload`).
+![Before](images/zynqparrot_before.png)
+![After](images/zynqparrot_after.png)
 
 ## Verification & Visuals
 The simulation environment uses a cycle-accurate compiled C++ model via **Verilator**, matching industry-standard VLSI verification workflows.
