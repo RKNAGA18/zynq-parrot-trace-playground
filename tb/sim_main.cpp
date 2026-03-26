@@ -3,11 +3,12 @@
 #include "verilated_vcd_c.h"
 
 int main(int argc, char** argv) {
-    Verilated::commandArgs(argc, argv);
-    Verilated::traceEverOn(true); // Enable waveform dumping
+    const std::unique_ptr<VerilatedContext> contextp{new VerilatedContext};
+    contextp->commandArgs(argc, argv);
+    contextp->traceEverOn(true); // Enable waveform dumping
 
     // Instantiate the compiled Verilog module
-    Vtb_encoder* top = new Vtb_encoder;
+    Vtb_encoder* top = new Vtb_encoder{contextp.get()};
     
     // Setup VCD dumping
     VerilatedVcdC* tfp = new VerilatedVcdC;
@@ -16,7 +17,7 @@ int main(int argc, char** argv) {
 
     int time = 0;
     // Run the simulation until $finish is called or timeout
-    while (!Verilated::gotFinish() && time < 100) {
+    while (!contextp->gotFinish() && time < 100) {
         top->clk = time % 2; // Toggle clock (0, 1, 0, 1...)
         top->eval();         // Evaluate the Verilog logic
         tfp->dump(time);     // Write to waveform
